@@ -388,19 +388,29 @@ def RE(mu,i):
         return mu
     return RE(1.5*mu-0.5*mu**3,i-1)
 
-def density(a,b,charge,orbital_exp,orbital_coe,orbital_pos,X,orbital_typ,position,l):
+def density(a,b,charge,orbital_exp,orbital_coe,orbital_pos,X,orbital_typ,position,l,alpha,Y):
     p = 1
     n = 30
     D = 0
     L = lebedev()
-    for i in range(len(charge)):
-        for k in range(1,n+1):
-            x = math.cos((2*k-1)/2/n*math.pi)
-            for s in L:
-                fai = s[1]
-                theta = s[0]
-                D = D + s[2]*4*math.pi*math.pi/n*2*p**3*(1+x)**2.5/(1-x)**3.5*f(p*(1+x)/(1-x)*math.sin(fai)*math.cos(theta),p*(1+x)/(1-x)*math.sin(fai)*math.sin(theta),p*(1+x)/(1-x)*math.cos(fai),i,charge,position,orbital_coe,orbital_exp,orbital_typ,orbital_pos,X)**l*\
-                Judge1(p*(1+x)/(1-x)*math.sin(fai)*math.cos(theta),p*(1+x)/(1-x)*math.sin(fai)*math.sin(theta),p*(1+x)/(1-x)*math.cos(fai),i,position)*overlap2(a,b,p*(1+x)/(1-x)*math.sin(fai)*math.cos(theta),p*(1+x)/(1-x)*math.sin(fai)*math.sin(theta),p*(1+x)/(1-x)*math.cos(fai),i,position,orbital_exp,orbital_coe,orbital_pos,orbital_typ)
+    if alpha == 0.5:
+        for i in range(len(charge)):
+            for k in range(1,n+1):
+                x = math.cos((2*k-1)/2/n*math.pi)
+                for s in L:
+                    fai = s[1]
+                    theta = s[0]
+                    D = D + s[2]*4*math.pi*math.pi/n*2*p**3*(1+x)**2.5/(1-x)**3.5*((1-alpha)*f(p*(1+x)/(1-x)*math.sin(fai)*math.cos(theta),p*(1+x)/(1-x)*math.sin(fai)*math.sin(theta),p*(1+x)/(1-x)*math.cos(fai),i,charge,position,orbital_coe,orbital_exp,orbital_typ,orbital_pos,X)+alpha*f(p*(1+x)/(1-x)*math.sin(fai)*math.cos(theta),p*(1+x)/(1-x)*math.sin(fai)*math.sin(theta),p*(1+x)/(1-x)*math.cos(fai),i,charge,position,orbital_coe,orbital_exp,orbital_typ,orbital_pos,Y))**l*\
+                    Judge1(p*(1+x)/(1-x)*math.sin(fai)*math.cos(theta),p*(1+x)/(1-x)*math.sin(fai)*math.sin(theta),p*(1+x)/(1-x)*math.cos(fai),i,position)*overlap2(a,b,p*(1+x)/(1-x)*math.sin(fai)*math.cos(theta),p*(1+x)/(1-x)*math.sin(fai)*math.sin(theta),p*(1+x)/(1-x)*math.cos(fai),i,position,orbital_exp,orbital_coe,orbital_pos,orbital_typ)
+    if alpha == 0:
+        for i in range(len(charge)):
+            for k in range(1,n+1):
+                x = math.cos((2*k-1)/2/n*math.pi)
+                for s in L:
+                    fai = s[1]
+                    theta = s[0]
+                    D = D + s[2]*4*math.pi*math.pi/n*2*p**3*(1+x)**2.5/(1-x)**3.5*f(p*(1+x)/(1-x)*math.sin(fai)*math.cos(theta),p*(1+x)/(1-x)*math.sin(fai)*math.sin(theta),p*(1+x)/(1-x)*math.cos(fai),i,charge,position,orbital_coe,orbital_exp,orbital_typ,orbital_pos,X)**l*\
+                    Judge1(p*(1+x)/(1-x)*math.sin(fai)*math.cos(theta),p*(1+x)/(1-x)*math.sin(fai)*math.sin(theta),p*(1+x)/(1-x)*math.cos(fai),i,position)*overlap2(a,b,p*(1+x)/(1-x)*math.sin(fai)*math.cos(theta),p*(1+x)/(1-x)*math.sin(fai)*math.sin(theta),p*(1+x)/(1-x)*math.cos(fai),i,position,orbital_exp,orbital_coe,orbital_pos,orbital_typ)
     return D
 def overlap2(a,b,x,y,z,i,position,orbital_exp,orbital_coe,orbital_pos, orbital_typ):
     O = 0
@@ -420,12 +430,12 @@ def f(x,y,z,pos,charge,position,orbital_coe,orbital_exp,orbital_typ,orbital_pos,
         rho = rho+rho_sqr**2
         rho_sqr = 0
     return rho*2
-def xc(charge,position,orbital_coe,orbital_exp,orbital_pos,orbital_typ,X,l,alpha):
+def xc(charge,position,orbital_coe,orbital_exp,orbital_pos,orbital_typ,X,l,alpha,beta,Y):
     XC_matrix = []
     for i in range(len(orbital_exp)):
         XC = []
         for j in range(len(orbital_exp)):
-            XC.append(-alpha*density(i,j,charge,orbital_exp,orbital_coe,orbital_pos,X,orbital_typ,position,l))
+            XC.append(-alpha*density(i,j,charge,orbital_exp,orbital_coe,orbital_pos,X,orbital_typ,position,l,beta,Y))
         XC_matrix.append(XC)
     return XC_matrix
 
@@ -444,19 +454,34 @@ def program2():
     A = np.diag(A ** 0.5)
     S_sqr = B @ A @ LA.inv(B)
     T = False
-    X = [[0.99138, -0.21833, 0.00000, 0.00000, -0.10447, -0.18905, 0.00000, 0.00000],
-         [0.04188, 0.71129, 0.00000, 0.00000, 0.48873, 1.26377, 0.00000, 0.00000],
-         [0.00000, 0.00000, 0.60232, 0.00000, 0.00000, 0.00000, 0.00000, 1.04814],
-         [0.00000, 0.00000, 0.00000, 0.60232, 0.00000, 0.00000, 1.04814, 0.00000],
-         [-0.00630, -0.19564, 0.00000, 0.00000, 0.88408, -0.56176, 0.00000, 0.00000],
-         [-0.00953, 0.16431, 0.00000, 0.48661, -0.10959, -0.71682, -1.00083, 0.00000],
-         [-0.00953, 0.16431, 0.42142, -0.24331, -0.10959, -0.71682, 0.50041, -0.86674],
-         [-0.00953, 0.16431, -0.42142, -0.24331, -0.10959, -0.71682, 0.50041, 0.86674]]
     Energy1 = 0
+    XC_matrix = xc(charge, position, orbital_coe, orbital_exp, orbital_pos, orbital_typ, X, 1 / 3, 1.033982273,
+                   0, X)
+    XC_matrix = np.array(XC_matrix)
+    Cou_matrix = []
+    for i in range(len(DE_matrix)):
+        Cou_row = []
+        for j in range(len(DE_matrix[i])):
+            Coulomb = 0
+            for r in range(int(sum(charge) / 2)):
+                for k in range(len(DE_matrix[i][j])):
+                    for l in range(len(DE_matrix[i][j][k])):
+                        Coulomb = Coulomb + DE_matrix[i][j][k][l] * X[k][r] * X[l][r] * 2
+            Cou_row.append(Coulomb)
+        Cou_matrix.append(Cou_row)
+    Cou_matrix = np.array(Cou_matrix)
+    orb_energy, Y = LA.eigh(S_sqr.T @ (H_matrix + XC_matrix + Cou_matrix) @ S_sqr)
+    Y = S_sqr @ Y
     while TEST == False:
         Energy2 = 0
         H_matrix = np.array(H_matrix)
-        XC_matrix = xc(charge, position, orbital_coe, orbital_exp, orbital_pos, orbital_typ,X,1/3,1.033982273)
+        if T == True:
+            beta = 0.5
+            XC_matrix = xc(charge, position, orbital_coe, orbital_exp, orbital_pos, orbital_typ,X,1/3,1.033982273,beta,Y)
+        else:
+            beta = 0
+            XC_matrix = xc(charge, position, orbital_coe, orbital_exp, orbital_pos, orbital_typ,Y,1/3,1.033982273,beta,Y)
+            X = Y
         XC_matrix = np.array(XC_matrix)
         Cou_matrix = []
         for i in range(len(DE_matrix)):
@@ -466,32 +491,25 @@ def program2():
                 for r in range(int(sum(charge)/2)):
                     for k in range(len(DE_matrix[i][j])):
                         for l in range(len(DE_matrix[i][j][k])):
-                            Coulomb = Coulomb+DE_matrix[i][j][k][l]*X[k][r]*X[l][r]*2
+                            Coulomb = Coulomb+DE_matrix[i][j][k][l]*(X[k][r]*X[l][r]+Y[k][r]*Y[l][r])
                 Cou_row.append(Coulomb)
             Cou_matrix.append(Cou_row)
         Cou_matrix = np.array(Cou_matrix)
+        X = Y
         orb_energy, Y = LA.eigh(S_sqr.T @ (H_matrix + XC_matrix + Cou_matrix) @ S_sqr)
+        Y = S_sqr @ Y
         for i in range(int(sum(charge)/2)):
-            Energy2 = Energy2+orb_energy[i]*2
+            Energy2 = Energy2 + orb_energy[i]*2
         if abs(Energy2 - Energy1) < 0.000001:
             TEST = True
         if abs(Energy2 - Energy) <1:
             T = True
         else:
             T = False
-        if T ==True :
-            Y = S_sqr @ Y
-            for i in range(len(Y)):
-                if Y[i][i]*X[i][i] < 0 :
-                    for j in range(len(Y)):
-                        Y[j][i] = -Y[j][i]
-            X = 0.5*(Y+X)
-        else:
-            X = S_sqr @ Y
         Energy = Energy1
         Energy1 = Energy2
-        print(Energy)
-        print(X)
+        print(Energy2)
+        print(Y)
     print(Energy + Potential)
     print(orb_energy)
     print(H_matrix + XC_matrix+Cou_matrix)
